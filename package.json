@@ -27,7 +27,6 @@
     "@tanstack/react-table": "^8.10.7",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.0.0",
-    "credit-score-dashboard": "file:",
     "lucide-react": "^0.292.0",
     "next": "14.0.3",
     "next-themes": "^0.2.1",
