@@ -4,7 +4,7 @@ import { usePathname } from "next/navigation"
 
 import { cn } from "@/lib/utils"
 import { siteConfig } from "@/config/site"
-import { ThemeToggle } from "@/components/theme/theme-toggle"
+import { ModeToggle } from "@/components/mode-toggle" // Update this import path
 
 export function MainNav() {
   const pathname = usePathname()
@@ -31,7 +31,7 @@ export function MainNav() {
         </nav>
       </div>
       <div className="flex items-center gap-2">
-        <ThemeToggle />
+        <ModeToggle />
         <div className="hidden md:flex gap-2">
           <Link href="/login">
             <span className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors">

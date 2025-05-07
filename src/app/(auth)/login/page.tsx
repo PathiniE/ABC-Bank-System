@@ -3,16 +3,10 @@
 import Link from "next/link"
 import { LoginForm } from "@/components/forms/login-form"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { MainNav } from "@/components/layout/main-nav"
 
 export default function LoginPage() {
   return (
     <div className="flex min-h-screen flex-col">
-      <header className="sticky top-0 z-40 border-b bg-background">
-        <div className="container flex h-16 items-center justify-between py-4">
-          <MainNav />
-        </div>
-      </header>
       <main className="flex-1 flex items-center justify-center p-4 md:p-8">
         <Card className="mx-auto max-w-md w-full">
           <CardHeader className="space-y-1">
