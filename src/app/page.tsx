@@ -5,7 +5,6 @@ import { MainNav } from "@/components/layout/main-nav"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { ArrowRight, CreditCard, Lock, Smartphone, Wallet } from "lucide-react"
-import Image from "next/image"
 
 export default function Home() {
   return (
@@ -49,12 +48,10 @@ export default function Home() {
                   <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full opacity-20 blur-3xl"></div>
                   <div className="relative h-full w-full bg-muted/50 rounded-lg border border-border shadow-lg flex items-center justify-center">
                     <div className="p-8">
-                      <Image
+                      <img
                         src="/banking-app.svg"
                         alt="Banking App"
                         className="w-full h-full object-contain"
-                        width={100}
-                        height={100}
                         onError={(e) => {
                           e.currentTarget.src = "https://placehold.co/400x300?text=Banking+App"
                         }}
