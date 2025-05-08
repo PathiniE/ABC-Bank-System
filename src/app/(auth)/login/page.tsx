@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { LoginForm } from "@/components/forms/login-form"
+import  LoginForm  from "@/components/forms/login-form"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 
 export default function LoginPage() {
@@ -10,8 +10,8 @@ export default function LoginPage() {
       <main className="flex-1 flex items-center justify-center p-4 md:p-8">
         <Card className="mx-auto max-w-md w-full">
           <CardHeader className="space-y-1">
-            <CardTitle className="text-2xl font-bold">Login</CardTitle>
-            <CardDescription>Enter your credentials to access your account</CardDescription>
+            <CardTitle className="text-2xl font-bold text-center">Login</CardTitle>
+            <CardDescription className="text-center">Enter your credentials to access your account</CardDescription>
           </CardHeader>
           <CardContent>
             <LoginForm />
