@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import  LoginForm  from "@/components/forms/login-form"
+import  {LoginForm}  from "@/components/forms/login-form"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 
 export default function LoginPage() {
