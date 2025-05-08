@@ -1,151 +1,124 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from 'react'
+import { v4 as uuidv4 } from 'uuid'
 
-// Types for chat functionality
 export interface ChatMessage {
   id: string
   content: string
-  role: "user" | "assistant"
+  role: 'user' | 'assistant'
+  status: 'sending' | 'sent' | 'error'
   timestamp: Date
-  status: "sending" | "sent" | "error"
 }
 
-export interface ChatSession {
+interface ChatHook {
   messages: ChatMessage[]
-  conversationId: string | null
+  isLoading: boolean
+  error: string | null
+  sendMessage: (content: string) => Promise<void>
+  clearChat: () => void
 }
 
-// API request and response types
-interface ChatRequest {
-  user_input: string
-  conversation_id: string | null
-}
-
-interface ChatResponse {
-  response: string
-  conversation_id: string | null
-  confidence?: number
-}
-
-// Chat service functions
-export const sendChatMessage = async (message: string, conversationId: string | null): Promise<ChatResponse> => {
-  try {
-    const response = await fetch("/api/chat", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        user_input: message,
-        conversation_id: conversationId,
-      } as ChatRequest),
-    })
-
-    if (!response.ok) {
-      throw new Error(`Error: ${response.status}`)
-    }
-
-    return await response.json()
-  } catch (error) {
-    console.error("Error sending chat message:", error)
-    throw error
-  }
-}
-
-// Hook for managing chat state
-export function useChat() {
+export function useChat(): ChatHook {
   const [messages, setMessages] = useState<ChatMessage[]>([])
-  const [conversationId, setConversationId] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  // Load conversation from localStorage on initial render
-  useEffect(() => {
-    const savedSession = localStorage.getItem("chatSession")
-    if (savedSession) {
-      try {
-        const session = JSON.parse(savedSession) as ChatSession
-        setMessages(session.messages)
-        setConversationId(session.conversationId)
-      } catch (e) {
-        console.error("Error loading chat session:", e)
-      }
-    }
-  }, [])
+  // API endpoint - update this to your actual backend URL
+  const API_URL = 'http://localhost:8000/chat'
 
-  // Save conversation to localStorage whenever it changes
-  useEffect(() => {
-    if (messages.length > 0) {
-      const session: ChatSession = {
-        messages,
-        conversationId,
-      }
-      localStorage.setItem("chatSession", JSON.stringify(session))
-    }
-  }, [messages, conversationId])
-
-  const sendMessage = async (content: string) => {
-    if (!content.trim()) return
-
+  const sendMessage = async (content: string): Promise<void> => {
+    // Don't proceed if empty message or already loading
+    if (!content.trim() || isLoading) return
+    
     // Create a new user message
+    const userMessageId = uuidv4()
     const userMessage: ChatMessage = {
-      id: Date.now().toString(),
-      content,
-      role: "user",
-      timestamp: new Date(),
-      status: "sending",
+      id: userMessageId,
+      content: content,
+      role: 'user',
+      status: 'sent',
+      timestamp: new Date()
     }
-
-    // Add user message to state
-    setMessages((prev) => [...prev, userMessage])
+    
+    // Add user message to chat
+    setMessages(prev => [...prev, userMessage])
+    
+    // Create placeholder for assistant response
+    const assistantMessageId = uuidv4()
+    const assistantMessage: ChatMessage = {
+      id: assistantMessageId,
+      content: '',
+      role: 'assistant',
+      status: 'sending',
+      timestamp: new Date()
+    }
+    
+    setMessages(prev => [...prev, assistantMessage])
     setIsLoading(true)
     setError(null)
-
+    
     try {
-      // Send message to API
-      const response = await sendChatMessage(content, conversationId)
+      // Format the message history to match what the backend expects
+      const history = messages.map(msg => ({
+        role: msg.role,
+        content: msg.content
+      }))
 
-      // Update user message status
-      setMessages((prev) => prev.map((msg) => (msg.id === userMessage.id ? { ...msg, status: "sent" } : msg)))
-
-      // Add assistant response
-      const assistantMessage: ChatMessage = {
-        id: (Date.now() + 1).toString(),
-        content: response.response,
-        role: "assistant",
-        timestamp: new Date(),
-        status: "sent",
+      // Call your API with message and conversation history
+      const response = await fetch(API_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          message: content,
+          history: history
+        }),
+      })
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ detail: 'Unknown error' }))
+        throw new Error(errorData.detail || `Server error: ${response.status}`)
       }
-
-      setMessages((prev) => [...prev, assistantMessage])
-
-      // Update conversation ID if provided
-      if (response.conversation_id) {
-        setConversationId(response.conversation_id)
-      }
+      
+      const data = await response.json()
+      
+      // Update assistant message with response
+      setMessages(prev => 
+        prev.map(msg =>
+          msg.id === assistantMessageId 
+          ? { ...msg, content: data.response, status: 'sent' }
+          : msg
+        )
+      )
     } catch (err) {
-      setError("Failed to send message. Please try again.")
-
-      // Update user message status to error
-      setMessages((prev) => prev.map((msg) => (msg.id === userMessage.id ? { ...msg, status: "error" } : msg)))
+      console.error('Error sending message:', err)
+      setError(err instanceof Error ? err.message : 'An unknown error occurred')
+      
+      // Update assistant message to show error
+      setMessages(prev => 
+        prev.map(msg =>
+          msg.id === assistantMessageId 
+          ? { ...msg, content: 'Sorry, I encountered an error. Please try again.', status: 'error' }
+          : msg
+        )
+      )
     } finally {
       setIsLoading(false)
     }
   }
 
-  const clearChat = () => {
+  const clearChat = (): void => {
     setMessages([])
-    setConversationId(null)
-    localStorage.removeItem("chatSession")
+    setError(null)
   }
 
   return {
     messages,
-    conversationId,
     isLoading,
     error,
     sendMessage,
-    clearChat,
+    clearChat
   }
 }
